@@ -37,6 +37,7 @@ def extractFeaturesAndDelete(filename):
 
 def random_cropping(infile, minLength = 1):
     """ Cropping the infile with a minimum duration of minLength
+    随机剪切语音，语音长度在 minLengtg ~ 1 之间
 
     Args:
         infile (str): Filename
@@ -57,11 +58,13 @@ def random_cropping(infile, minLength = 1):
         if (FILE_DELETION):
             extractFeaturesAndDelete(outfile)
     else :
-        print "MinLength provided is greater than the duration of the song."
+        print("MinLength provided is greater than the duration of the song.")
+    return y
+
   
 def add_noise(infile, noise_name, snr):
     """ Add noise to infile
-
+    信噪比，负值：噪声显著
     Args:
         infile (str): Filename
         noise_name (str): Name of noise (currently only 'white-noise')
@@ -74,14 +77,14 @@ def add_noise(infile, noise_name, snr):
 
     while z.shape[0] < x.shape[0]:
         z = np.concatenate((z, z), axis=0)
-    z = z[0: x.shape[0]]
+    z = z[0: x.shape[0]] / 10
     rms_z = np.sqrt(np.mean(np.power(z, 2)))
     rms_x = np.sqrt(np.mean(np.power(x, 2)))
     snr_linear = 10 ** (snr / 20.0)
     noise_factor = rms_x / rms_z / snr_linear
     y = x + z * noise_factor
     rms_y = np.sqrt(np.mean(np.power(y, 2)))
-    y = y * rms_x / rms_y
+    y = y * rms_x / rms_y /2000
 
     #Change the output file name to suit your requirements here
     outfile_name = os.path.basename(infile).split(".")[0] + ("_addedNoise%s.wav" % str(snr))
@@ -89,6 +92,7 @@ def add_noise(infile, noise_name, snr):
     write(filename = outfile, rate = fs1, data = y)
     if (FILE_DELETION):
         extractFeaturesAndDelete(outfile)
+    return y
 
 def convolve(infile, ir_name, level = 0.5):
     """ Apply convolution to infile using impulse response given
@@ -114,6 +118,7 @@ def convolve(infile, ir_name, level = 0.5):
     write(filename = outfile, rate = fs1, data = y)
     if (FILE_DELETION):
         extractFeaturesAndDelete(outfile)
+    return y
 
 def apply_gain(infile, gain):
     """ Apply gain to infile
@@ -133,6 +138,7 @@ def apply_gain(infile, gain):
     write(filename = outfile, rate = fs1, data = x)
     if (FILE_DELETION):
         extractFeaturesAndDelete(outfile)
+    return y
 
 def apply_rubberband(infile, time_stretching_ratio=1.0, pitch_shifting_semitones=1):
     """ Use rubberband tool to apply time stretching and pitch shifting
@@ -157,7 +163,7 @@ def apply_rubberband(infile, time_stretching_ratio=1.0, pitch_shifting_semitones
                          stderr=subprocess.PIPE)
     out, err = p.communicate()
     if p.returncode != 0:
-        print "ERROR!"
+        print("ERROR!")
 
     fs2, y = monoWavRead(filename=tmp_file_2)
 
@@ -167,6 +173,7 @@ def apply_rubberband(infile, time_stretching_ratio=1.0, pitch_shifting_semitones
     write(filename = outfile, rate = fs1, data = y)
     if (FILE_DELETION):
         extractFeaturesAndDelete(outfile)
+    return y
 
 def apply_dr_compression(infile, degree):
     """ Apply dynamic range compression using SOX
@@ -192,7 +199,7 @@ def apply_dr_compression(infile, degree):
                          stderr=subprocess.PIPE)
     out, err = p.communicate()
     if p.returncode != 0:
-        print "ERROR!"
+        print("ERROR!")
     fs2, y = monoWavRead(filename = tmpfile_2)
 
     #Change the output file name to suit your requirements here
@@ -201,6 +208,7 @@ def apply_dr_compression(infile, degree):
     write(filename = outfile, rate = fs1, data = y)
     if (FILE_DELETION):
         extractFeaturesAndDelete(outfile)
+    return y
 
 def apply_eq(infile, value):
     """ Applying equalizer effects using SOX
@@ -234,7 +242,7 @@ def apply_eq(infile, value):
                          stderr=subprocess.PIPE)
     out, err = p.communicate()
     if p.returncode != 0:
-        print "ERROR!"
+        print("ERROR!")
     fs2, y = monoWavRead(filename = tmpfile_2)
     #Change the output file name to suit your requirements here
     outfile_name = os.path.basename(infile).split(".")[0] + ("_eq%s.wav" % str(value))
@@ -242,4 +250,4 @@ def apply_eq(infile, value):
     write(filename = outfile, rate = fs1, data = y)
     if (FILE_DELETION):
         extractFeaturesAndDelete(outfile)
-
+    return y
